@@ -6,3 +6,4 @@ data/private/
 *.csv
 *.parquet
 *.pkl
+*.npz
