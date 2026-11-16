@@ -9,7 +9,7 @@ from flax import nnx
 import optax
 import numpy as np
 import pandas as pd
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, List, Optional, Tuple, Union
 
 import model
 import common
@@ -193,7 +193,7 @@ def train_single_seed(
               f"违规率={test_metrics['violation_rate']:.4%} ({test_metrics['violations_count']}/{test_metrics['total_samples']}) | "
               f"耗时={train_time:.1f}s")
 
-    return test_metrics
+    return test_metrics, net
 
 
 def run_10_seeds_experiment(
@@ -203,8 +203,9 @@ def run_10_seeds_experiment(
     lr: float = 5e-4,
     weight_decay: float = 0.1,
     w_orth: float = 0.1,
-    patience: int = 20
-) -> Tuple[pd.DataFrame, Dict[str, Dict[str, float]]]:
+    patience: int = 20,
+    return_best_model: bool = False
+) -> Union[Tuple[pd.DataFrame, Dict[str, Dict[str, float]]], Tuple[pd.DataFrame, Dict[str, Dict[str, float]], model.HardMonotonicRiskNet, Dict[str, np.ndarray]]]:
     """
     运行 10 个独立随机种子实验并统计均值与标准差 (与 read_lend.ipynb 配置严格一致)
     """
@@ -228,10 +229,14 @@ def run_10_seeds_experiment(
 
     # 3. 循环 10 个随机种子训练
     results = []
+    best_model = None
+    seed_42_model = None
+    best_loss = 9999.0
+
     total_start = time.time()
     for idx, seed in enumerate(seeds, 1):
         print(f"\n[{idx}/{len(seeds)}] 正在训练随机种子 Seed={seed} ...")
-        res = train_single_seed(
+        res, trained_net = train_single_seed(
             seed=seed,
             data=data,
             bin_edges=bin_edges,
@@ -240,10 +245,15 @@ def run_10_seeds_experiment(
             lr=lr,
             weight_decay=weight_decay,
             w_orth=w_orth,
-            patience = patience,
+            patience=patience,
             verbose=True
         )
         results.append(res)
+        if seed == 42:
+            seed_42_model = trained_net
+        if best_model is None or res.get("loss_task", 9999.0) < best_loss:
+            best_loss = res.get("loss_task", 9999.0)
+            best_model = trained_net
 
     total_time = time.time() - total_start
 
@@ -267,10 +277,10 @@ def run_10_seeds_experiment(
         print(f"{int(row['seed']):<8}"
               f"{row['auc_mob2']:<14.4f}"
               f"{row['ks_mob2']:<14.4f}"
-              f"{row['LogLoss mob2']:<14.4f}"
+              f"{row['loss_mob2']:<14.4f}"
               f"{row['auc_mob6']:<14.4f}"
               f"{row['ks_mob6']:<14.4f}"
-              f"{row['LogLoss mob6']:<14.4f}"
+              f"{row['loss_mob6']:<14.4f}"
               f"{row['violation_rate']:<14.4%}"
               f"{row['train_time_sec']:<6.1f}s")
     print("-" * 80)
@@ -293,6 +303,9 @@ def run_10_seeds_experiment(
     print("=" * 80)
     print(f"✅ 10 种子测试完成，总耗时: {total_time:.1f} 秒\n")
 
+    selected_model = seed_42_model if seed_42_model is not None else best_model
+    if return_best_model:
+        return df_results, stats_summary, selected_model, data
     return df_results, stats_summary
 
 
