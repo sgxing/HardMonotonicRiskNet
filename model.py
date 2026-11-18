@@ -364,7 +364,7 @@ class TabMDualTargetNet(nnx.Module):
     """
     TabM 双目标信贷风控预测网络 (ICLR 2025 优化版)
     - 特征投影层: 首层应用 tabm_init (Rademacher 随机符号)
-    - 宽隐层骨干: d_hidden = 256 (容纳 k=16 个异构子模型)
+    - 隐层骨干: d_hidden = 128 (对齐 read_lend.ipynb 运行配置)
     - 任务专属头: 两组独立的 BatchEnsemble 线性分类头 (d_hidden -> 1)
     - 集成汇聚: 经由 Sigmoid 变换后在成员维度求均值 (Ensemble Mean Probability)
     """
@@ -372,10 +372,10 @@ class TabMDualTargetNet(nnx.Module):
         self,
         rngs: nnx.Rngs,
         num_features: int,
-        d_hidden: int = 256,
+        d_hidden: int = 128,
         n_layers: int = 3,
         k: int = 16,
-        dropout_rate: float = 0.1,
+        dropout_rate: float = 0.5,
         bin_edges=None,
     ):
         super().__init__()
@@ -525,7 +525,7 @@ class PLE_MTL(nnx.Module):
         self,
         rngs: nnx.Rngs,
         num_static_features: int,
-        expert_hidden: int = 64,
+        expert_hidden: int = 128,
         head_hidden: int = 64,
         num_task1_experts: int = 2,
         num_task2_experts: int = 2,
@@ -541,11 +541,8 @@ class PLE_MTL(nnx.Module):
 
         # 1. 可选分段线性切分层 (Piecewise Linear Encoding)
         if bin_edges is not None:
-            self.ple = PiecewiseLinearEncoding(jnp.asarray(bin_edges), rngs=rngs, d_embedding=d_embedding)
-            if d_embedding is not None:
-                in_dim = bin_edges.shape[0] * d_embedding
-            else:
-                in_dim = bin_edges.shape[0]
+            self.ple = PiecewiseLinearEncoding(jnp.asarray(bin_edges), rngs=rngs)
+            in_dim = bin_edges.shape[0]
         else:
             self.ple = None
             in_dim = num_static_features
@@ -609,3 +606,17 @@ class PLE_MTL(nnx.Module):
         logits_mob6 = self.head_mob6(h_t2)
 
         return logits_mob2, logits_mob6
+
+
+__all__ = [
+    "PiecewiseLinearEncoding",
+    "HardMonotonicRiskNet",
+    "BaseMTL",
+    "HybridCreditModel_STL",
+    "NnetSurvival",
+    "LinearBatchEnsemble",
+    "TabMBlock",
+    "TabMDualTargetNet",
+    "ExtractionLayer",
+    "PLE_MTL",
+]
