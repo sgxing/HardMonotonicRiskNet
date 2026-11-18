@@ -1,6 +1,6 @@
-# HardMonotonicRiskNet: 硬单调因果解耦信贷风控跨期预测系统
+# HardMonotonicRiskNet: A Monotonically Constrained Expert System for Multi-Horizon Credit Risk Assessment
 
-## 1. 环境准备
+## 1. Environment Setup
 
 ```bash
 pip install -r requirements.txt
@@ -9,7 +9,7 @@ pip install -r requirements.txt
 
 ---
 
-## 2. 核心实验与基准评测运行命令
+## 2. Core Experiments and Benchmark Evaluation Commands
 
 ```bash
 # 1. 默认运行核心提出的 HardMonotonicRiskNet (10 种子) 并执行两级可解释性 Case A/B 归因
@@ -39,7 +39,7 @@ python3.12 main.py --model all
 
 ---
 
-## 3. HistGBDT 自动化超参数调优 (RandomizedSearchCV + 外部验证集早停截断)
+## 3. Automated Hyperparameter Tuning for HistGBDT (RandomizedSearchCV + Early Stopping on External Validation Set)
 
 ```bash
 # 同时对 MOB2 和 MOB6 执行随机超参数搜索，调优结果自动持久化并挂载至模型
