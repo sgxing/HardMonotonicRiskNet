@@ -5,35 +5,35 @@
 ```bash
 pip install -r requirements.txt
 ```
-*(若在 Mac Apple Silicon 芯片上使用 Metal 加速，可按需安装 `pip install jax-mps`)*
+*(For Metal acceleration on Apple Silicon Macs, optionally `install pip install jax-mps`)*.
 
 ---
 
 ## 2. Core Experiments and Benchmark Evaluation Commands
 
 ```bash
-# 1. 默认运行核心提出的 HardMonotonicRiskNet (10 种子) 并执行两级可解释性 Case A/B 归因
+# 1. Run the proposed HardMonotonicRiskNet by default (across 10 seeds) and perform two-level interpretability attribution (Cases A and B).
 python3.12 main.py
 
-# 2. 单独评测指定基准模型 (例如 HistGBDT 梯度提升树)
+# 2. Evaluate a specific baseline model individually (e.g., HistGBDT gradient boosted trees).
 python3.12 main.py --model hist_gbdt
 
-# 3. 单独评测指定MLP模型
+# 3.Evaluate the mlp_stl individually
 python3.12 main.py --model mlp_stl
 
-# 4. 单独评测离散时间生存模型 NnetSurvival
+# 4.Evaluate the discrete-time survival model NnetSurvival individually.
 python3.12 main.py --model nnet_survival
 
-# 5. 单独评测多任务学习网络 BaseMTL (支持通过 --w-reg 自定义软单调惩罚权重) 或 PLE-MTL
+# 5.Evaluate the multi-task learning network BaseMTL individually (supports customizing the soft monotonicity penalty weight via --w-reg).
 python3.12 main.py --model base_mtl --w-reg 5.0
 
-# 6. 单独评测多任务学习网络 PLE-MTL
+# 6.Evaluate the multi-task learning network PLE-MTL individually
 python3.12 main.py --model ple_mtl
 
-# 7. 指定部分随机种子与训练轮数 (例如快速运行 Seed 42, 100)
+# 7.Specify a subset of random seeds and training epochs (e.g., a quick run with Seeds 42 and 100).
 python3.12 main.py --model tabm --seeds 42,100 --epochs 50
 
-# 8. 一键运行全部 7 个模型的大规模 Benchmark 对比并生成顶刊论文总表
+# 8.Run the full-scale benchmark comparison across all 7 models in one command and generate the publication-ready summary table.
 python3.12 main.py --model all
 ```
 
@@ -42,10 +42,10 @@ python3.12 main.py --model all
 ## 3. Automated Hyperparameter Tuning for HistGBDT (RandomizedSearchCV + Early Stopping on External Validation Set)
 
 ```bash
-# 同时对 MOB2 和 MOB6 执行随机超参数搜索，调优结果自动持久化并挂载至模型
+# Perform randomized hyperparameter search for both MOB2 and MOB6 simultaneously, with tuning results automatically persisted and mounted to the model.
 python3.12 main.py --tune-hgbdt --tune-n-iter 100
 
-# 仅对 MOB2 或 MOB6 单独调优
+# Run hyperparameter tuning individually for either MOB2 or MOB6.
 python3.12 main.py --tune-hgbdt --tune-task mob2 --tune-n-iter 100
 python3.12 main.py --tune-hgbdt --tune-task mob6 --tune-n-iter 100
 ```
